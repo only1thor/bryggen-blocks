@@ -13,24 +13,6 @@ const COLORS = {
   yellow:  '#E8C547',
 };
 
-// Background building colors (Bryggen-inspired, drawn at 30% alpha)
-const BG_BUILDINGS = [
-  { color: '#BA3B2E', height: 0.88 },   // red
-  { color: '#F5F0E8', height: 0.65 },   // white
-  { color: '#C4943A', height: 0.95 },   // ochre
-  { color: '#7A2A1C', height: 0.72 },   // dark red
-  { color: '#E8C547', height: 0.82 },   // yellow
-  { color: '#BA3B2E', height: 0.60 },   // red
-  { color: '#F5F0E8', height: 0.78 },   // white
-  { color: '#C4943A', height: 0.90 },   // ochre
-  { color: '#7A2A1C', height: 0.68 },   // dark red
-  { color: '#BA3B2E', height: 0.85 },   // red
-];
-
-const BG_SKY    = '#C5D5E0';
-const BG_WATER  = '#4A6B8A';
-const BG_ROOF   = '#5A4030';
-
 // Assign block colors to piece types
 const PIECE_COLORS = {
   I: COLORS.yellow,
