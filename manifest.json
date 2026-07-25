@@ -1,7 +1,22 @@
 {
   "name": "Bryggen Blocks",
   "short_name": "Bryggen Blocks",
+  "description": "A Tetris game inspired by the colorful wooden buildings of Bryggen in Bergen, Norway",
   "start_url": ".",
   "display": "standalone",
-  "orientation": "portrait"
+  "orientation": "portrait",
+  "background_color": "#1a1a2e",
+  "theme_color": "#4A6B8A",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
