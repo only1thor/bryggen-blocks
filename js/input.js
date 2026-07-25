@@ -4,9 +4,20 @@ let lastDrop = 0;
 let animationId = null;
 
 function setupInput() {
+  const btnLeft   = document.getElementById('btn-left');
+  const btnRight  = document.getElementById('btn-right');
   const btnRotCCW = document.getElementById('btn-rotate-ccw');
   const btnRotCW  = document.getElementById('btn-rotate-cw');
-  const btnDrop   = document.getElementById('btn-drop');
+
+  btnLeft.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    movePiece(0, -1);
+  });
+
+  btnRight.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    movePiece(0, 1);
+  });
 
   btnRotCCW.addEventListener('pointerdown', (e) => {
     e.preventDefault();
@@ -18,16 +29,27 @@ function setupInput() {
     rotatePiece(1);
   });
 
-  btnDrop.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    hardDrop();
-    lastDrop = performance.now();
-  });
-
-  // Tap canvas to restart after game over
-  canvas.addEventListener('pointerdown', () => {
+  // Tap bottom 2 rows of board = hard drop (invisible interaction zone)
+  canvas.addEventListener('pointerdown', (e) => {
     if (gameOver) {
       startGame();
+      lastDrop = performance.now();
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const cx = (e.clientX - rect.left) * scaleX;
+    const cy = (e.clientY - rect.top) * scaleY;
+
+    // Check if tap is within bottom 2 rows of the board
+    const boardBottom = boardOffsetY + cellSize * ROWS;
+    const dropZoneTop = boardBottom - cellSize * 2;
+
+    if (cx >= boardOffsetX && cx <= boardOffsetX + cellSize * COLS &&
+        cy >= dropZoneTop && cy <= boardBottom) {
+      hardDrop();
       lastDrop = performance.now();
     }
   });

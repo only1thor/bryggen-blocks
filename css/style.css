@@ -84,15 +84,3 @@ canvas {
   background: rgba(186, 59, 46, 0.5);
   border-color: #BA3B2E;
 }
-
-#btn-drop {
-  width: 72px;
-  height: 72px;
-  font-size: 32px;
-  border-color: rgba(232, 197, 71, 0.5);
-}
-
-#btn-drop:active {
-  background: rgba(232, 197, 71, 0.4);
-  border-color: #E8C547;
-}
