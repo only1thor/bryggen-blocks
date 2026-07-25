@@ -10,7 +10,7 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #1a1a2e;
+  background: #0a0a19;
   touch-action: manipulation;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -31,20 +31,22 @@ html, body {
 
 canvas {
   display: block;
-  border-radius: 8px;
 }
 
 #score-display {
   position: absolute;
-  top: max(16px, env(safe-area-inset-top));
+  top: max(12px, env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
-  color: #F5F0E8;
-  font-size: 22px;
-  font-weight: 700;
+  background: rgba(10, 10, 25, 0.8);
+  color: #E8C547;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 12px;
   z-index: 10;
   pointer-events: none;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  letter-spacing: 0.3px;
 }
 
 /* ---- Controls ---- */
@@ -52,24 +54,24 @@ canvas {
 #controls-left,
 #controls-right {
   position: absolute;
-  bottom: max(24px, env(safe-area-inset-bottom));
+  bottom: max(20px, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   z-index: 20;
 }
 
-#controls-left  { left: 12px; }
-#controls-right { right: 12px; }
+#controls-left  { left: 8px; }
+#controls-right { right: 8px; }
 
 .ctrl-btn {
-  width: 60px;
-  height: 60px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  border: 2px solid rgba(245, 240, 232, 0.35);
-  background: rgba(26, 26, 46, 0.75);
+  border: 1.5px solid rgba(245, 240, 232, 0.3);
+  background: rgba(10, 10, 25, 0.7);
   color: #F5F0E8;
-  font-size: 26px;
+  font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -83,4 +85,13 @@ canvas {
 .ctrl-btn:active {
   background: rgba(186, 59, 46, 0.5);
   border-color: #BA3B2E;
+}
+
+/* ---- Drop zone (invisible tap area at bottom of board) ---- */
+
+#drop-zone {
+  position: absolute;
+  z-index: 15;
+  /* Position updated by JS to match bottom 3 rows of board */
+  pointer-events: auto;
 }

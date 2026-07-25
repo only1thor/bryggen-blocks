@@ -2,64 +2,71 @@
 
 let lastDrop = 0;
 let animationId = null;
+let dropZone = null;
+
+function positionDropZone() {
+  if (!dropZone || !cellSize) return;
+  const boardBottom = boardOffsetY + cellSize * ROWS;
+  const dropH = cellSize * 3;
+  dropZone.style.left   = boardOffsetX + 'px';
+  dropZone.style.top    = (boardBottom - dropH) + 'px';
+  dropZone.style.width  = (cellSize * COLS) + 'px';
+  dropZone.style.height = dropH + 'px';
+}
 
 function setupInput() {
-  const btnLeft   = document.getElementById('btn-left');
-  const btnRight  = document.getElementById('btn-right');
-  const btnRotCCW = document.getElementById('btn-rotate-ccw');
-  const btnRotCW  = document.getElementById('btn-rotate-cw');
+  dropZone = document.getElementById('drop-zone');
 
-  btnLeft.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    movePiece(0, -1);
+  document.getElementById('btn-left').addEventListener('pointerdown', function(e) {
+    e.preventDefault(); e.stopPropagation(); movePiece(0, -1);
+  });
+  document.getElementById('btn-right').addEventListener('pointerdown', function(e) {
+    e.preventDefault(); e.stopPropagation(); movePiece(0, 1);
+  });
+  document.getElementById('btn-rotate-ccw').addEventListener('pointerdown', function(e) {
+    e.preventDefault(); e.stopPropagation(); rotatePiece(-1);
+  });
+  document.getElementById('btn-rotate-cw').addEventListener('pointerdown', function(e) {
+    e.preventDefault(); e.stopPropagation(); rotatePiece(1);
   });
 
-  btnRight.addEventListener('pointerdown', (e) => {
+  // Drop zone: tap bottom 3 rows to hard drop
+  dropZone.addEventListener('pointerdown', function(e) {
     e.preventDefault();
-    movePiece(0, 1);
-  });
-
-  btnRotCCW.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    rotatePiece(-1);
-  });
-
-  btnRotCW.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    rotatePiece(1);
-  });
-
-  // Tap bottom 2 rows of board = hard drop (invisible interaction zone)
-  canvas.addEventListener('pointerdown', (e) => {
     if (gameOver) {
       startGame();
       lastDrop = performance.now();
       return;
     }
-
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const cx = (e.clientX - rect.left) * scaleX;
-    const cy = (e.clientY - rect.top) * scaleY;
-
-    // Check if tap is within bottom 2 rows of the board
-    const boardBottom = boardOffsetY + cellSize * ROWS;
-    const dropZoneTop = boardBottom - cellSize * 2;
-
-    if (cx >= boardOffsetX && cx <= boardOffsetX + cellSize * COLS &&
-        cy >= dropZoneTop && cy <= boardBottom) {
+    if (running && currentPiece) {
       hardDrop();
       lastDrop = performance.now();
     }
   });
 
+  // Tap canvas to restart when game over
+  canvas.addEventListener('pointerdown', function(e) {
+    if (gameOver) {
+      startGame();
+      lastDrop = performance.now();
+    }
+  });
+
   // Prevent unwanted touch behaviors
-  document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
-  document.addEventListener('gesturestart', (e) => e.preventDefault());
-  document.addEventListener('gesturechange', (e) => e.preventDefault());
-  document.addEventListener('gestureend', (e) => e.preventDefault());
+  document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+  document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
+  document.addEventListener('gestureend', function(e) { e.preventDefault(); });
+
+  positionDropZone();
 }
+
+// ---- Override resizeCanvas to also reposition drop zone ----
+var _origResizeCanvas = resizeCanvas;
+resizeCanvas = function() {
+  _origResizeCanvas();
+  positionDropZone();
+};
 
 // ---- Game Loop ----
 
@@ -87,5 +94,4 @@ function initGame() {
   animationId = requestAnimationFrame(gameLoop);
 }
 
-// Start when DOM is ready
 document.addEventListener('DOMContentLoaded', initGame);
