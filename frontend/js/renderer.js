@@ -264,8 +264,6 @@ function drawGameOver() {
 // ---- Main render ----
 
 function render() {
-  drawSky();
-  drawBuildings();
   drawNextPiece();
   drawBoard();
   drawHUD();
