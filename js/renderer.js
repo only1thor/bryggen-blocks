@@ -17,98 +17,114 @@ function resizeCanvas() {
   const maxW = container.clientWidth;
   const maxH = container.clientHeight;
 
-  const availH = maxH - 20;
-  const cellFromW = Math.floor(maxW * 0.82 / COLS);
-  const cellFromH = Math.floor(availH * 0.72 / ROWS);
-  cellSize = Math.min(cellFromW, cellFromH, 32);
+  // Reserve: score (40px top) + controls (70px bottom)
+  const topPad = 46;
+  const botPad = 74;
+  const availW = maxW * 0.86;
+  const availH = maxH - topPad - botPad;
+
+  const cellFromW = Math.floor(availW / COLS);
+  const cellFromH = Math.floor(availH / ROWS);
+  cellSize = Math.min(cellFromW, cellFromH, 34);
 
   const boardW = cellSize * COLS;
   const boardH = cellSize * ROWS;
 
   boardOffsetX = Math.floor((maxW - boardW) / 2);
-  boardOffsetY = Math.floor((availH - boardH) / 2) + 25;
+  boardOffsetY = topPad + Math.floor((availH - boardH) / 2);
 
   canvas.width = maxW;
   canvas.height = maxH;
 }
 
-// ---- Background: subtle sky ----
+// ---- Sky gradient ----
 
 function drawSky() {
-  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  grad.addColorStop(0, '#2A3040');
-  grad.addColorStop(1, '#1A2030');
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height * 0.75);
+  grad.addColorStop(0, '#3B4A5A');
+  grad.addColorStop(0.4, '#2A3540');
+  grad.addColorStop(1, '#1A2530');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-// ---- Subtle Bryggen buildings (very faint) ----
+// ---- Bryggen buildings (drawn behind the board, semi-visible through it) ----
 
 function drawBuildings() {
-  const areaTop = boardOffsetY - cellSize * 2;
-  const areaBottom = boardOffsetY;
-  const areaH = areaBottom - areaTop;
   const bldgW = canvas.width / BG_BUILDINGS.length;
+  const areaTop = boardOffsetY - cellSize * 4;
+  const areaBottom = boardOffsetY + cellSize * ROWS + cellSize * 2;
+  const areaH = areaBottom - areaTop;
 
-  ctx.globalAlpha = 0.12;
+  ctx.globalAlpha = 0.30;
 
   for (let i = 0; i < BG_BUILDINGS.length; i++) {
     const b = BG_BUILDINGS[i];
-    const x = i * bldgW + 3;
-    const w = bldgW - 5;
+    const x = i * bldgW + 2;
+    const w = bldgW - 3;
     const h = areaH * b.height;
     const y = areaBottom - h;
 
+    // Building body
     ctx.fillStyle = b.color;
     ctx.fillRect(x, y, w, h);
 
+    // Triangular roof
     ctx.fillStyle = BG_ROOF;
     ctx.beginPath();
-    const roofH = h * 0.18;
+    const roofH = Math.max(h * 0.16, 4);
     ctx.moveTo(x - 1, y);
     ctx.lineTo(x + w / 2, y - roofH);
     ctx.lineTo(x + w + 1, y);
     ctx.closePath();
     ctx.fill();
 
-    // Tiny windows
-    ctx.fillStyle = 'rgba(255,255,240,0.25)';
-    const ws = Math.max(1.5, w / 10);
-    const wg = ws * 3;
-    let wi = 0;
+    // Windows
+    ctx.fillStyle = 'rgba(255,248,220,0.35)';
+    const ws = Math.max(2, w / 8);
+    const wg = ws * 3.5;
     for (let wy = y + roofH + wg; wy < y + h - wg; wy += wg) {
       for (let wx = x + wg; wx < x + w - wg; wx += wg) {
-        if ((i + wi) % 3 !== 0) ctx.fillRect(wx, wy, ws, ws);
-        wi++;
+        ctx.fillRect(wx, wy, ws, ws);
       }
     }
   }
+
+  // Harbor water at the very bottom
+  const waterY = boardOffsetY + cellSize * ROWS + cellSize;
+  const gradW = ctx.createLinearGradient(0, waterY, 0, canvas.height);
+  gradW.addColorStop(0, 'rgba(74,107,138,0.25)');
+  gradW.addColorStop(1, 'rgba(30,50,70,0.40)');
+  ctx.fillStyle = gradW;
+  ctx.fillRect(0, waterY, canvas.width, canvas.height - waterY);
+
   ctx.globalAlpha = 1;
 }
 
-// ---- Next piece preview (above board, centered horizontally) ----
+// ---- Next piece preview (above board) ----
 
 function drawNextPiece() {
   if (!nextPieceType) return;
 
-  const previewSize = cellSize * 0.65;
+  const previewSize = cellSize * 0.60;
   const boxW = cellSize * 3;
-  const boxH = cellSize * 2.2;
+  const boxH = cellSize * 2;
   const previewX = boardOffsetX + (cellSize * COLS - boxW) / 2;
-  const previewY = boardOffsetY - cellSize * 2.6;
+  const previewY = boardOffsetY - cellSize * 2.8;
 
   // Label
-  ctx.fillStyle = 'rgba(245,240,232,0.4)';
-  ctx.font = `${Math.max(9, cellSize * 0.33)}px sans-serif`;
+  ctx.fillStyle = 'rgba(245,240,232,0.5)';
+  ctx.font = `${Math.max(10, cellSize * 0.3)}px sans-serif`;
   ctx.textAlign = 'center';
-  ctx.fillText('NEXT', previewX + boxW / 2, previewY - 4);
+  ctx.fillText('NEXT', previewX + boxW / 2, previewY - 3);
 
-  // Box
-  ctx.strokeStyle = 'rgba(245,240,232,0.12)';
+  // Box with semi-transparent background
+  ctx.fillStyle = 'rgba(10,12,25,0.55)';
+  ctx.fillRect(previewX, previewY, boxW, boxH);
+  ctx.strokeStyle = 'rgba(245,240,232,0.15)';
   ctx.lineWidth = 1;
   ctx.strokeRect(previewX, previewY, boxW, boxH);
 
-  // Piece centered in box
   const shape = getShape(nextPieceType, 0);
   const color = getColor(nextPieceType);
   const pw = shape[0].length * previewSize;
@@ -123,27 +139,27 @@ function drawNextPiece() {
         const y = oy + r * previewSize;
         ctx.fillStyle = color;
         ctx.fillRect(x + 1, y + 1, previewSize - 2, previewSize - 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.12)';
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
         ctx.fillRect(x + 1, y + 1, previewSize - 2, 1.5);
       }
     }
   }
 }
 
-// ---- Board rendering ----
+// ---- Board ----
 
 function drawBoard() {
-  // Board background
-  ctx.fillStyle = 'rgba(8, 8, 22, 0.93)';
+  // Semi-transparent background — buildings show through
+  ctx.fillStyle = 'rgba(6,6,20,0.82)';
   ctx.fillRect(boardOffsetX, boardOffsetY, cellSize * COLS, cellSize * ROWS);
 
   // Border
-  ctx.strokeStyle = 'rgba(245,240,232,0.10)';
+  ctx.strokeStyle = 'rgba(245,240,232,0.12)';
   ctx.lineWidth = 1;
   ctx.strokeRect(boardOffsetX, boardOffsetY, cellSize * COLS, cellSize * ROWS);
 
   // Grid
-  ctx.strokeStyle = 'rgba(255,255,255,0.035)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
   ctx.lineWidth = 0.5;
   for (let r = 0; r <= ROWS; r++) {
     ctx.beginPath();
@@ -203,7 +219,7 @@ function drawCell(row, col, color, alpha) {
   ctx.globalAlpha = alpha;
   ctx.fillStyle = color;
   ctx.fillRect(x + inset, y + inset, cellSize - inset * 2, cellSize - inset * 2);
-  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.fillStyle = 'rgba(255,255,255,0.20)';
   ctx.fillRect(x + inset, y + inset, cellSize - inset * 2, 2);
   ctx.fillRect(x + inset, y + inset, 2, cellSize - inset * 2);
   ctx.fillStyle = 'rgba(0,0,0,0.22)';
@@ -212,7 +228,7 @@ function drawCell(row, col, color, alpha) {
   ctx.globalAlpha = 1;
 }
 
-// ---- HUD — score + lines (HTML element, always visible) ----
+// ---- HUD ----
 
 function drawHUD() {
   var s = (typeof score !== 'undefined') ? score : 0;
@@ -220,10 +236,10 @@ function drawHUD() {
   document.getElementById('score-display').textContent = 'Score ' + s + '  \u00b7  Lines ' + l;
 }
 
-// ---- Game Over overlay ----
+// ---- Game Over ----
 
 function drawGameOver() {
-  ctx.fillStyle = 'rgba(0,0,0,0.78)';
+  ctx.fillStyle = 'rgba(0,0,0,0.80)';
   ctx.fillRect(boardOffsetX, boardOffsetY, cellSize * COLS, cellSize * ROWS);
 
   var cx = boardOffsetX + cellSize * COLS / 2;
