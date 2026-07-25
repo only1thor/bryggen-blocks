@@ -45,8 +45,8 @@ function drawNextPiece() {
   const previewSize = cellSize * 0.60;
   const boxW = cellSize * 3;
   const boxH = cellSize * 2;
-  const previewX = boardOffsetX + (cellSize * COLS - boxW) / 2;
-  const previewY = boardOffsetY - cellSize * 2.8;
+  const previewX = canvas.width - boxW - 12;
+  const previewY = 12;
 
   // Label
   ctx.fillStyle = 'rgba(245,240,232,0.5)';
