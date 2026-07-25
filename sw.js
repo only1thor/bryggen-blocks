@@ -1,0 +1,1 @@
+// Bryggen Blocks — service worker (Task 6)

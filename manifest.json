@@ -1,0 +1,7 @@
+{
+  "name": "Bryggen Blocks",
+  "short_name": "Bryggen Blocks",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait"
+}

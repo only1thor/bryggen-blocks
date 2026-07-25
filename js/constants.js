@@ -1,0 +1,1 @@
+// Bryggen Blocks — game constants (Task 1)

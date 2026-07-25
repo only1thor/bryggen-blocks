@@ -1,0 +1,1 @@
+// Bryggen Blocks — Canvas renderer (Task 3)

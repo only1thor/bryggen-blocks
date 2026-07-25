@@ -1,0 +1,1 @@
+// Bryggen Blocks — core game logic (Task 2)
