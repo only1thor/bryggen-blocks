@@ -150,7 +150,7 @@ function drawNextPiece() {
 
 function drawBoard() {
   // Semi-transparent background — buildings show through
-  ctx.fillStyle = 'rgba(6,6,20,0.82)';
+  ctx.fillStyle = 'rgba(6,6,20,0.10)';
   ctx.fillRect(boardOffsetX, boardOffsetY, cellSize * COLS, cellSize * ROWS);
 
   // Border
