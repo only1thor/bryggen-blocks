@@ -1,13 +1,14 @@
 // Bryggen Blocks — Service Worker
-const CACHE = 'bryggen-blocks-v1';
+const CACHE = 'bryggen-blocks-v2';
 const ASSETS = [
-  '/',
+  './',
   'index.html',
-  'css/style.css',
-  'js/constants.js',
-  'js/game.js',
-  'js/renderer.js',
-  'js/input.js',
+  'frontend/css/style.css',
+  'frontend/images/bg.webp',
+  'frontend/js/constants.js',
+  'engine/game.js',
+  'frontend/js/renderer.js',
+  'frontend/js/input.js',
   'manifest.json',
 ];
 
