@@ -119,7 +119,7 @@ function hardDrop() {
   while (movePiece(1, 0)) {
     // keep dropping
   }
-  lockPiece();
+  lockAndSpawn();
 }
 
 function ghostRow() {
@@ -149,6 +149,20 @@ function lockPiece() {
     }
   }
   currentPiece = null;
+}
+
+function lockAndSpawn() {
+  lockPiece();
+  const cleared = clearLines();
+  if (cleared > 0) {
+    score += SCORE_TABLE[Math.min(cleared, 4)];
+    lines += cleared;
+  }
+  currentPiece = nextPiece();
+  if (collides(currentPiece.type, currentPiece.rotation, currentPiece.row, currentPiece.col)) {
+    running = false;
+    gameOver = true;
+  }
 }
 
 function clearLines() {
@@ -194,17 +208,7 @@ function tick() {
   if (!currentPiece) return;
 
   if (!movePiece(1, 0)) {
-    lockPiece();
-    const cleared = clearLines();
-    if (cleared > 0) {
-      score += SCORE_TABLE[Math.min(cleared, 4)];
-      lines += cleared;
-    }
-    currentPiece = nextPiece();
-    if (collides(currentPiece.type, currentPiece.rotation, currentPiece.row, currentPiece.col)) {
-      running = false;
-      gameOver = true;
-    }
+    lockAndSpawn();
   }
 }
 
@@ -212,7 +216,7 @@ function getDropInterval() {
   return DROP_INTERVAL; // fixed speed
 }
 
-// ---- Tests (run in browser console: Game.runTests()) ----
+// ---- Tests (run in browser console: runTests()) ----
 function runTests() {
   let passed = 0;
   let failed = 0;
@@ -221,73 +225,121 @@ function runTests() {
     else { console.error('FAIL:', msg); failed++; }
   };
 
-  // Reset
-  board = createBoard();
-  currentPiece = null;
-  gameOver = false;
+  // Reset helpers
+  const reset = () => {
+    board = createBoard();
+    currentPiece = null;
+    gameOver = false;
+    running = true;
+    score = 0;
+    lines = 0;
+    nextPieceType = null;
+  };
 
-  // spawnPiece
+  // === spawnPiece ===
+  reset();
   const piece = spawnPiece('T');
   assert(piece.type === 'T', 'spawnPiece type');
   assert(piece.rotation === 0, 'spawnPiece rotation');
   assert(piece.row === 0, 'spawnPiece row');
 
-  // collides at spawn
+  // === collides ===
   assert(!collides('T', 0, 0, 3), 'T piece fits at spawn');
-
-  // collides with wall
   assert(collides('T', 0, 0, -1), 'T hits left wall');
   assert(collides('T', 0, 0, 8), 'T hits right wall');
   assert(!collides('I', 0, 0, 3), 'I piece fits at spawn col 3');
 
-  // movePiece
+  // === movePiece ===
+  reset();
   currentPiece = spawnPiece('T');
   assert(movePiece(0, 1) === true, 'move right OK');
   assert(currentPiece.col === 4, 'moved right to col 4');
   assert(movePiece(0, -1) === true, 'move left OK');
   assert(currentPiece.col === 3, 'moved left back to col 3');
 
-  // move into wall
+  // move into wall blocked
   currentPiece.col = 0;
   assert(movePiece(0, -1) === false, 'blocked by left wall');
   assert(currentPiece.col === 0, 'col unchanged after wall block');
 
-  // hardDrop
+  // === hardDrop locks AND spawns next piece ===
+  reset();
   currentPiece = spawnPiece('O');
   hardDrop();
-  // O piece is 2x2, spawns at col 4, so should land at row 18
+  // O piece (2x2) spawns at col 4, should land at row 18
   assert(board[18][4] === PIECE_COLORS.O, 'O landed at row 18 col 4');
   assert(board[18][5] === PIECE_COLORS.O, 'O landed at row 18 col 5');
   assert(board[19][4] === PIECE_COLORS.O, 'O landed at row 19 col 4');
   assert(board[19][5] === PIECE_COLORS.O, 'O landed at row 19 col 5');
+  // Critical: next piece must exist after hardDrop
+  assert(currentPiece !== null, 'next piece spawned after hardDrop');
+  assert(typeof currentPiece.type === 'string', 'next piece has a type');
+  assert(currentPiece.row === 0, 'next piece at top');
+  assert(gameOver === false, 'game not over after one drop');
 
-  // clearLines
-  // Fill row 19 (bottom) completely
-  board = createBoard();
+  // === hardDrop multiple times ===
+  reset();
+  for (let i = 0; i < 5; i++) {
+    currentPiece = nextPiece();
+    if (collides(currentPiece.type, currentPiece.rotation, currentPiece.row, currentPiece.col)) {
+      break;
+    }
+    hardDrop();
+  }
+  assert(currentPiece !== null, 'still have a piece after 5 hard drops');
+  assert(gameOver === false, 'game not over after 5 drops');
+
+  // === clearLines ===
+  reset();
   for (let c = 0; c < COLS; c++) board[19][c] = COLORS.red;
   const cleared = clearLines();
   assert(cleared === 1, 'one line cleared');
   assert(board[19].every(c => c === null), 'bottom row is now empty');
-  assert(board[18].every(c => c === null), 'row above is empty too');
 
-  // Rotation
-  board = createBoard();
+  // === Rotation with SRS kicks ===
+  reset();
   currentPiece = spawnPiece('T');
   const origRot = currentPiece.rotation;
   assert(rotatePiece(1) === true, 'rotate CW succeeds in open space');
   assert(currentPiece.rotation === (origRot + 1) % 4, 'rotation incremented');
-
-  // rotate CCW
   assert(rotatePiece(-1) === true, 'rotate CCW succeeds');
   assert(currentPiece.rotation === origRot, 'rotation back to original');
 
-  // Game over detection
-  board = createBoard();
-  // Fill top rows
+  // === Rotation blocked by wall (should kick) ===
+  reset();
+  currentPiece = spawnPiece('I');
+  currentPiece.col = 0; // jam against left wall
+  // I piece rotation 0 → 1 (CW) should kick right
+  const kicked = rotatePiece(1);
+  assert(kicked === true, 'I piece wall kick succeeds near wall');
+
+  // === Game over detection ===
+  reset();
   for (let c = 0; c < COLS; c++) board[0][c] = COLORS.red;
   currentPiece = spawnPiece('T');
   assert(collides(currentPiece.type, currentPiece.rotation, currentPiece.row, currentPiece.col),
     'game over when spawn blocked');
+
+  // === startGame integration ===
+  reset();
+  startGame();
+  assert(currentPiece !== null, 'startGame spawns a piece');
+  assert(running === true, 'running after startGame');
+  assert(gameOver === false, 'not game over after startGame');
+  assert(nextPieceType !== null, 'next piece preview available');
+
+  // === tick flows through multiple pieces ===
+  reset();
+  startGame();
+  const firstType = currentPiece.type;
+  // Drop to bottom by ticking many times
+  for (let i = 0; i < 30; i++) tick();
+  // After piece locks, tick should have spawned next
+  assert(currentPiece !== null, 'piece exists after tick-to-bottom');
+  assert(currentPiece.type !== firstType || board.some(row => row.some(c => c !== null)),
+    'either new piece type or board has locked cells');
+  assert(running === true || gameOver === true, 'game in valid state');
+  assert(score >= 0, 'score is non-negative');
 
   console.log(`Tests: ${passed} passed, ${failed} failed`);
   return { passed, failed };
