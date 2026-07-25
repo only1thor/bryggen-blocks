@@ -45,14 +45,16 @@ function drawNextPiece() {
   const previewSize = cellSize * 0.60;
   const boxW = cellSize * 3;
   const boxH = cellSize * 2;
-  const previewX = canvas.width - boxW - 12;
-  const previewY = 12;
+  const margin = 12;
+  const previewX = canvas.width - boxW - margin;
+  const labelFontSize = Math.max(10, cellSize * 0.3);
+  const previewY = margin + labelFontSize + 4;
 
   // Label
-  ctx.fillStyle = 'rgba(245,240,232,0.5)';
-  ctx.font = `${Math.max(10, cellSize * 0.3)}px sans-serif`;
+  ctx.fillStyle = '#000';
+  ctx.font = `${labelFontSize}px sans-serif`;
   ctx.textAlign = 'center';
-  ctx.fillText('NEXT', previewX + boxW / 2, previewY - 3);
+  ctx.fillText('NEXT', previewX + boxW / 2, margin + labelFontSize);
 
   // Box with semi-transparent background
   ctx.fillStyle = 'rgba(10,12,25,0.55)';
