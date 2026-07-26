@@ -19,6 +19,10 @@ A Tetris game inspired by the colorful wooden buildings of [Bryggen](https://en.
 
 ## How to Play
 
+The game is hosted here:
+
+https://only1thor.github.io/bryggen-blocks
+
 | Control | Action |
 |---|---|
 | ← button | Move left |
